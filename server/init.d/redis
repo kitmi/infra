@@ -1,0 +1,107 @@
+#!/bin/bash
+#init file for starting up the redis daemon
+#
+# chkconfig:   - 20 80
+# description: Starts and stops the redis daemon.
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+REDISPORT=__REDIS_PORT__
+PROG=redis-server
+EXEC=__REDIS_DIR__/bin/${PROG}
+CLIEXEC=__REDIS_DIR__/bin/redis-cli
+
+PIDFILE=__REDIS_LOG_DIR__/redis.pid
+CONF="__REDIS_DIR__/conf/redis.conf"
+LOCKFILE="__REDIS_LOG_DIR__/redis.lock"
+
+start() {
+    uc=`$0 status | grep '(pid' | wc -l`
+    if [ ${uc} -gt 0 ]
+    then
+        echo "${PROG} already running."
+        exit 1
+    fi
+
+    echo -n "Starting ${PROG} ... "
+    sudo -u __REDIS_USER__ $EXEC $CONF
+    RETVAL=$?
+    if [ ${RETVAL} -eq 0 ]
+    then
+        echo "[OK]"
+        touch /var/lock/subsys/${PROG}
+    else
+        echo "[FAIL]"
+    fi
+
+    return ${RETVAL}
+}
+
+stop() {
+    echo -n "Stopping ${PROG} ..."
+
+    if [ ! -f ${PIDFILE} ]
+    then
+        uc=`$0 status | grep '(pid' | wc -l`
+        if [ ${uc} -gt 0 ]
+        then
+            force_quit
+        else
+            echo "${PROG} is not running."
+        fi
+    else
+        PID=$(cat ${PIDFILE})
+
+        PASSWORD=`cat __REDIS_PASSWORD_FILE__`
+        $CLIEXEC -p $REDISPORT -a ${PASSWORD} shutdown
+
+        STOPIMEOUT=30
+	    while [ ${STOPIMEOUT} -gt 0 ]; do
+		    sleep 1
+		    echo -n "."
+		    [ -x /proc/${PID} ] || break;
+		    let STOPIMEOUT=${STOPIMEOUT}-1
+	    done
+
+        if [ -x /proc/${PID} ]
+        then
+            force_quit
+        else
+            echo "[OK]"
+        fi
+    fi
+}
+
+force_quit() {
+    killproc ${PROG}
+    RETVAL=$?
+    if [ ${RETVAL} -eq 0 ]
+    then
+        echo "[OK]"
+        rm -f /var/lock/subsys/${PROG} ${PIDFILE}
+    else
+        echo "[FAIL]"
+    fi
+    return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        sleep 1
+        start
+        ;;
+    status)
+        status $EXEC
+        ;;
+    *)
+        echo "Please use start or stop as first argument"
+        ;;
+esac

@@ -1,0 +1,90 @@
+#!/bin/bash
+#init file for starting up the mongodb daemon
+#
+# chkconfig:   - 20 80
+# description: Starts and stops the mongodb daemon.
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+PROG=mongod
+EXEC="__MONGODB_DIR__/bin/${PROG}"
+PIDFILE="__MONGODB_LOG_DIR__/mongodb.pid"
+CONF="__MONGODB_DIR__/conf/mongodb.conf"
+LOCKFILE="__MONGODB_LOG_DIR__/mongodb.lock"
+EXTRA="--setParameter enableLocalhostAuthBypass=0"
+
+[ -x $EXEC ] || exit 0
+
+RETVAL=0
+
+# Start daemons.
+start() {
+	uc=`$0 status | grep '(pid' | wc -l`
+    if [ ${uc} -gt 0 ]
+    then
+        echo "${PROG} already running."
+        exit 1
+    fi
+
+	echo -n $"Starting ${PROG} ..."
+	# Single instance for all caches
+	sudo -u __MONGODB_USER__ ${EXEC} --pidfilepath=$PIDFILE --config ${CONF} ${EXTRA}
+	RETVAL=$?
+    if [ ${RETVAL} -eq 0 ]
+    then
+        echo "[OK]"
+        touch /var/lock/subsys/${PROG}
+    else
+        echo "[FAIL]"
+    fi
+
+    return ${RETVAL}
+}
+
+# Stop daemons.
+stop() {
+	echo -n $"Stopping ${PROG} ..."
+
+    uc=`$0 status | grep '(pid' | wc -l`
+    if [ ${uc} -gt 0 ]
+    then
+        killproc -d 10 ${EXEC}
+        RETVAL=$?
+    fi
+    [ $RETVAL = 0 ] && rm -f $PIDFILE /var/lock/subsys/${PROG}
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    init)
+        EXTRA=""
+        start
+        ;;
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status ${EXEC}
+		RETVAL=$?
+		;;
+	restart)
+		stop
+		start
+		;;
+	condrestart)
+		if test "x`pidof mongodb`" != x; then
+		stop
+		start
+		fi
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|status|restart|condrestart}"
+		exit 1
+esac
+exit $RETVAL
