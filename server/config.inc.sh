@@ -2,7 +2,7 @@
 #https://github.com/kitmi/infra/server
 
 #components to install
-export COMPONENTS="redis mongodb" #nginx mysql php54 phpmyadmin redis
+export COMPONENTS="mongodb" #nginx mysql php54 phpmyadmin redis mongodb qt
 export LNMP_DATA=/etc/lnmp.install.dat
 
 #define the install path, backup path, data path, web root path and etc.

@@ -126,6 +126,10 @@ function main()
     do
         .  ${SCRIPT_DIR}/scripts/install_${COMPONENT}.inc.sh
     done
+
+	echo 
+	echo "Done."
+	echo
 }
 
 function install_deps()
