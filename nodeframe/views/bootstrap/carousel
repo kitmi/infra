@@ -1,0 +1,16 @@
+{% macro component id items %}
+<div id="{{id}}" class="carousel slide">
+  <ol class="carousel-indicators">
+{% for item in items %}
+    <li data-target="#{{id}}" data-slide-to="{{ loop.index0 }}"{% if loop.first %} class="active"{% endif %}></li>
+{% endfor %}
+  </ol>
+  <div class="carousel-inner">
+{% for item in items %}
+    <div class="{% if loop.first %}active {% endif %}item">{{ item }}</div>
+{% endfor %}
+  </div>
+  <a class="carousel-control left" href="#{{id}}" data-slide="prev">&lsaquo;</a>
+  <a class="carousel-control right" href="#{{id}}" data-slide="next">&rsaquo;</a>
+</div>
+{% endmacro %}

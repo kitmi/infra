@@ -1,0 +1,14 @@
+body {
+    color: #333;
+    background: #f9faf7;
+}
+
+#centerForm {
+    margin: 160px auto;
+    width: 600px;
+}
+
+.hero-unit {
+    background-color: #ffffff;
+    font-size: 14px;
+}
