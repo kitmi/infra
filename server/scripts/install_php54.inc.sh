@@ -233,7 +233,7 @@ function install_php54_ext()
         if [ ! -f ${BASE_DIR}/lib/libzbar.so ]
         then
             prepare_package lib ${PACKAGE_DIR} ${ZBAR_TAR_NAME} ${BASE_DIR} ${DOWNLOAD_BASE_URL}
-            install_package ${PACKAGE_DIR}/${ZBAR_TAR_NAME} ${ZBAR_TAR_NAME} --prefix=${BASE_DIR}
+            install_package ${PACKAGE_DIR}/${ZBAR_TAR_NAME} ${ZBAR_TAR_NAME} --prefix=${BASE_DIR} --with-x=no --with-python=no --with-gtk=no --with-qt=no
         fi
         install_php_extension ${PACKAGE_DIR} ${PHP_ZBARCODE_TAR_NAME} ${BASE_DIR} ${DOWNLOAD_BASE_URL} ${PHP54_DIR} ext zbarcode.so
     fi

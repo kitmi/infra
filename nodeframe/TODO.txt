@@ -1,5 +1,0 @@
-1.create page
-2.edit page
-3.preview page
-
-auth

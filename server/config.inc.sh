@@ -2,7 +2,7 @@
 #https://github.com/kitmi/infra/server
 
 #components to install
-export COMPONENTS="mongodb" #nginx mysql php54 phpmyadmin redis mongodb qt
+export COMPONENTS="mongodb" #nginx mysql php54 phing phpmyadmin redis mongodb qt
 export LNMP_DATA=/etc/lnmp.install.dat
 
 #define the install path, backup path, data path, web root path and etc.
@@ -36,7 +36,6 @@ export PHP_GROUP=www
 export PHP_FPM_PORT=9000
 export PHP_ONLY_INSTALL_EXT=0
 export PHP_WITH_EACCELERATOR=0
-export PHP_WITH_PHING=0
 export PHP_WITH_UUID=1
 export PHP_WITH_REDIS=1
 export PHP_WITH_XINC=0
