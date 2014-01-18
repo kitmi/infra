@@ -118,6 +118,7 @@ function main()
     set_datetime
     set_file_limits
 	install_deps
+    setup_timesync
 
     add_custom_lib_path "${BASE_DIR}/lib"
     add_custom_bin_path "${BASE_DIR}/bin"
@@ -161,12 +162,25 @@ function install_deps()
 	    libuuid libuuid-devel \
 	    ntp \
 	    npm
+
+    [ "$?" -eq 0 ] || exit_with_error "Installing dependencies failed!"    
+}
+
+function setup_timesync()
+{
+    //todo:
 }
 
 function set_datetime()
 {
     #todo set datetime and timezone
-    echo
+    echo "Set timezone to ${TIMEZONE}" 
+    
+    [ -f /usr/share/zoneinfo/${TIMEZONE} ] || exit_with_error "Timezone info for [${TIMEZONE}] does not exist!"
+    
+    rm -f /etc/localtime
+
+    ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 }
 
 function set_file_limits()
