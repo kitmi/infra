@@ -2,7 +2,7 @@
 #https://github.com/kitmi/infra/server
 
 #components to install
-export COMPONENTS="mongodb" #nginx mysql php54 phing phpmyadmin redis mongodb qt
+export COMPONENTS="nginx mysql php54 phing phpmyadmin redis mongodb" #nginx mysql php54 phing phpmyadmin redis mongodb qt
 export LNMP_DATA=/etc/lnmp.install.dat
 
 #define the install path, backup path, data path, web root path and etc.
@@ -15,7 +15,7 @@ export TMP_BASE_DIR=${LNMP_DIR}/tmp
 
 #global configuration
 export PACKAGE_SOURCE_URL=http://www.kingcores.com/downloads/lnmp
-export TIMEZONE=Asia/Shanghai
+export TIMEZONE=Australia/Sydney
 
 #define nginx configuration
 export NGINX_USER=www
