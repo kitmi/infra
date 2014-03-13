@@ -156,7 +156,7 @@ function download()
         wget $3/$2.tar.gz
         [ $? -eq 0 ] || wget $3/$2.tgz
     fi
-    [ -f $1/$2 ] || exit_with_error "$2 not found! You may try running installation script with -d option."
+    [ -f $1/$2.tar.gz ] || [ -f $1/$2.tgz ] || exit_with_error "$2 not found! You may try running installation script with -d option."
 }
 
 # download_untar: <1:package_dir> <2:package_name> <3:download_url>
@@ -370,7 +370,7 @@ function set_file_limits()
         -e '/\* soft nofile.*/d' -e '/^# End of file/i\* soft nofile 65535'\
         /etc/security/limits.conf
         
-    sed -i -'/fs\.file-max.*/d' /etc/sysctl.conf       
+    sed -i '/fs\.file-max.*/d' /etc/sysctl.conf       
     echo "fs.file-max = 65535" >> /etc/sysctl.conf  
 }
 

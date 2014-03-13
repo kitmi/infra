@@ -33,10 +33,11 @@ EOF
     
 }
 
-function install_npm {
+function install_packages {
 
     yum -y install \
-        npm
+        npm \
+        git
         
 }
 
@@ -50,11 +51,17 @@ function set_hostname {
     echo ${IPADDR} ${HOSTNAME} ${FQDN} >> /etc/hosts
 
 }
+
+function setup_git {
+    git config --global user.name "rockie"
+    git config --global credential.helper 'cache --timeout=3600'
+}
     
 fix_locale
 set_hostname    
 install_ssh_key
 install_epel
-install_npm
+install_packages
+setup_git
 
 

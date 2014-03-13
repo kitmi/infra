@@ -6,7 +6,7 @@ export COMPONENTS="nginx mysql php54 phing phpmyadmin redis mongodb" #nginx mysq
 export LNMP_DATA=/etc/kitmi-infra.install.dat
 
 #define the install path, backup path, data path, web root path and etc.
-export LNMP_DIR=/lnmp
+export LNMP_DIR=/infra
 export BASE_DIR=${LNMP_DIR}/local
 export BACKUP_DIR=${LNMP_DIR}/backup
 export DATA_BASE_DIR=${LNMP_DIR}/data
