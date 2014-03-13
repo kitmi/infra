@@ -23,7 +23,7 @@ export USE_TAR_BASENAME=0
 export DOWNLOAD_BASE_URL=no_auto_download
 export BACKUP_DIR_FLAG=${BACKUP_DIR}
 
-echo "LNMP Installation Script"
+echo "Infrastructure Stack Installation Script"
 echo "https://github.com/kitmi/infra/server"
 echo
 
@@ -56,7 +56,7 @@ do
       "?")
         echo "Unknown option ${OPTARG}"
         cat <<USAGE
-LNMP Installation Script
+Infrastructure Stack Installation Script
 https://github.com/kitmi/infra/server
 
 Usages:
@@ -115,10 +115,10 @@ function main()
     [ -d ${BASE_DIR} ] || mkdir -p ${BASE_DIR}
     [ -d ${TMP_BASE_DIR} ] || mkdir -p ${TMP_BASE_DIR}
 
-    set_datetime
+    set_timezone ${TIMEZONE}
     set_file_limits
 	install_deps
-    setup_timesync
+    sync_time
 
     add_custom_lib_path "${BASE_DIR}/lib"
     add_custom_bin_path "${BASE_DIR}/bin"
@@ -134,71 +134,8 @@ function main()
 }
 
 function install_deps()
-{
-	rpm -i --nosignature ${SCRIPT_DIR}/epel-release-6-8.noarch.rpm
-
-	yum -y install \
-	    yum-utils \
-	    bison \
-	    make autoconf gcc gcc-c++ \
-	    libjpeg libjpeg-devel libpng libpng-devel libpng10 libpng10-devel \
-	    freetype freetype-devel \
-	    libxml2 libxml2-devel \
-	    zlib zlib-devel glibc glibc-devel glib2 glib2-devel bzip2 bzip2-devel \
-	    fonts-chinese gettext gettext-devel \
-	    ncurses ncurses-devel \
-	    curl curl-devel \
-	    e2fsprogs e2fsprogs-devel \
-	    krb5 krb5-devel \
-	    libidn libidn-devel \
-	    openssl openssl-devel \
-	    openldap openldap-devel openldap-clients \
-	    pcre pcre-devel \
-	    gd gd-devel \
-	    libevent libevent-devel \
-	    libpcap libpcap-devel \
-	    wget \
-	    rsync \
-	    libuuid libuuid-devel \
-	    ntp \
-	    npm
-
-    [ "$?" -eq 0 ] || exit_with_error "Installing dependencies failed!"    
-}
-
-function setup_timesync()
-{
-    //todo:
-}
-
-function set_datetime()
-{
-    #todo set datetime and timezone
-    echo "Set timezone to ${TIMEZONE}" 
-    
-    [ -f /usr/share/zoneinfo/${TIMEZONE} ] || exit_with_error "Timezone info for [${TIMEZONE}] does not exist!"
-    
-    rm -f /etc/localtime
-
-    ln -s /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-}
-
-function set_file_limits()
-{
-    if ! grep "* soft nproc 65535" /etc/sysctl.conf >& /dev/null; then
-        cat >>/etc/security/limits.conf<<EOF
-* hard nproc 65535
-* soft nproc 65535
-* soft nofile 65535
-* hard nofile 65535
-EOF
-    fi
-
-    if ! grep "fs.file-max = 65535" /etc/sysctl.conf >& /dev/null; then
-        cat >>/etc/sysctl.conf<<EOF
-fs.file-max = 65535
-EOF
-    fi
+{	
+    rpm -i --nosignature ${SCRIPT_DIR}/epel-release-6-8.noarch.rpm      
 }
 
 main

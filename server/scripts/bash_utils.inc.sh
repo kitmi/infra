@@ -143,17 +143,18 @@ function prepare_package()
     download_untar $2 $3 $5
 }
 
-# download: <1:package_dir> <2:package_name_with_ext> <3:download_url|"no_auto_download">
+# download: <1:package_dir> <2:package_name> <3:download_url|"no_auto_download">
 function download()
 {
-    if [ $3 != "no_auto_download" ] && [ ! -f $1/$2 ]
+    if [ $3 != "no_auto_download" ] && [ ! -f $1/$2.tar.gz ] && [ ! -f $1/$2.tgz ]
     then
         echo
         echo "Downloading package $2 ..."
         echo
         [ -d $1 ] || mkdir -p $1
         cd $1
-        wget $3/$2
+        wget $3/$2.tar.gz
+        [ $? -eq 0 ] || wget $3/$2.tgz
     fi
     [ -f $1/$2 ] || exit_with_error "$2 not found! You may try running installation script with -d option."
 }
@@ -161,13 +162,18 @@ function download()
 # download_untar: <1:package_dir> <2:package_name> <3:download_url>
 function download_untar()
 {
-    download $1 $2.tar.gz $3
+    download $1 $2 $3
     [ -d $1/$2 ] && rm -rf $1/$2
 
     echo
     echo "Extracting $2 package ..."
     echo
-    tar xf $1/$2.tar.gz -C $1
+    if [ -f $1/$2.tar.gz ]
+    then  
+        tar xf $1/$2.tar.gz -C $1
+    else
+        tar xf $1/$2.tgz -C $1
+    fi
 }
 
 # install_package: <1:source_dir> <2:package_name> [<3:make_flag|"no_auto_make">] [<*:flag>]
@@ -202,12 +208,12 @@ function install_package()
 }
 
 # install_php_extension <1:package_dir> <2:tar_name> <3:base_dir> <4:download_url> <5:php_dir> <6:ext|zend> <7:so_name> [<*:flag>]
-function install_php_extension()
+function install_php54_extension()
 {
     SOURCE_DIR=$1/$2
     PACKAGE_NAME=$2
     PHP_DIR=$5
-    SO_PATH=${PHP_DIR}/lib/php/extensions/no-debug-non-zts-${PHP_EXT_BUILD_NUM}/$7
+    SO_PATH=${PHP_DIR}/lib/php/extensions/no-debug-non-zts-${PHP54_EXT_BUILD_NUM}/$7
 
     if [ -f ${SO_PATH} ] && [ ${ALL_REINSTALL} -eq 0 ]
     then
@@ -226,7 +232,53 @@ function install_php_extension()
 
         if [ $6 == "zend" ]
         then
-            CONFIG_LINE="zend_extension = \"${PHP_DIR}/lib/php/extensions/no-debug-non-zts-${PHP_EXT_BUILD_NUM}/$7\""
+            CONFIG_LINE="zend_extension = \"${PHP_DIR}/lib/php/extensions/no-debug-non-zts-${PHP54_EXT_BUILD_NUM}/$7\""
+        else
+            CONFIG_LINE="extension = \"$7\""
+        fi
+
+        shift 7
+
+        install_package ${SOURCE_DIR} ${PACKAGE_NAME} $*
+
+        if ! grep "${CONFIG_LINE}" ${PHP_DIR}/etc/php.ini >& /dev/null; then
+            PLACEHOLDER=';EXT!'
+            sed -i "/${PLACEHOLDER}/i\\${CONFIG_LINE}" ${PHP_DIR}/etc/php.ini
+        fi
+
+        [ -f ${SO_PATH} ] || exit_with_error "Failed to install ${PACKAGE_NAME} PHP extension!"
+
+        echo
+        echo "PHP extension '${PACKAGE_NAME}' is installed successfully."
+        echo
+    fi
+}
+
+function install_php53_extension()
+{
+    SOURCE_DIR=$1/$2
+    PACKAGE_NAME=$2
+    PHP_DIR=$5
+    SO_PATH=${PHP_DIR}/lib/php/extensions/no-debug-non-zts-${PHP53_EXT_BUILD_NUM}/$7
+
+    if [ -f ${SO_PATH} ] && [ ${ALL_REINSTALL} -eq 0 ]
+    then
+        echo
+        echo "PHP extension '${PACKAGE_NAME}' has already been installed."
+        echo "Nothing to do."
+        echo
+    else
+        prepare_package lib $1 $2 $3 $4
+
+        echo
+        echo "Building ${PACKAGE_NAME} PHP extension package ..."
+        echo
+        cd ${SOURCE_DIR}
+        ${PHP_DIR}/bin/phpize
+
+        if [ $6 == "zend" ]
+        then
+            CONFIG_LINE="zend_extension = \"${PHP_DIR}/lib/php/extensions/no-debug-non-zts-${PHP53_EXT_BUILD_NUM}/$7\""
         else
             CONFIG_LINE="extension = \"$7\""
         fi
@@ -293,3 +345,32 @@ function remove_install_record()
         /bin/sed -i "/$1 /d" ${LNMP_DATA}
     fi
 }
+
+# set the timezone
+function set_timezone {
+    echo "Set timezone to $1"     
+    [ -f /usr/share/zoneinfo/$1 ] || exit_with_error "Timezone info for [$1] does not exist!"
+    
+    ln -sf /usr/share/zoneinfo/$1 /etc/localtime
+}
+
+# sync time
+function sync_time()
+{
+    ntpdate time.windows.com
+    [ $? -eq 0 ] || ntpdate us.pool.ntp.org
+}
+
+# set file limits
+function set_file_limits()
+{
+    sed -i -e '/\* hard nproc.*/d' -e '/^# End of file/i\* hard nproc 65535'\
+        -e '/\* soft nproc.*/d' -e '/^# End of file/i\* soft nproc 65535'\
+        -e '/\* hard nofile.*/d' -e '/^# End of file/i\* hard nofile 65535'\
+        -e '/\* soft nofile.*/d' -e '/^# End of file/i\* soft nofile 65535'\
+        /etc/security/limits.conf
+        
+    sed -i -'/fs\.file-max.*/d' /etc/sysctl.conf       
+    echo "fs.file-max = 65535" >> /etc/sysctl.conf  
+}
+
